@@ -14,7 +14,7 @@ class UnionFindStructureTarjan():
         current = node
         next_ = None
 
-        while current != root:
+        while current is not root:
             next_ = current.parent
             current.parent = root
             current = next_

@@ -26,7 +26,7 @@ class SplitFindminStructureGabow(Generic[T]):
         self.containing_container_sublists: ElementContainer[SplitFindminStructureGabow[T]] = None
         self.list_index: int = list_index if list_index \
             else self.ackermann_table.get_inverse(decreasecosts_number, elements_number)
-        self.cost: float = None
+        self.cost: float = 0
 
     def is_sublist(self) -> bool:
         return bool(self.containing_list)
@@ -40,12 +40,12 @@ class SplitFindminStructureGabow(Generic[T]):
     def initialize_head(self) -> None:
         current = self.elements.last_container
 
-        cost = float("inf")
+        self.cost = float("inf")
         size = 0
 
         while current is not self.elements.left_sentinel:
             size += 1
-            cost = min(cost, current.item.cost)
+            self.cost = min(self.cost, current.item.cost)
             current = current.predecessor
 
         current = self.elements.last_container
@@ -121,12 +121,12 @@ class SplitFindminStructureGabow(Generic[T]):
 
     def initializeTail(self) -> None:
         current = self.elements.left_sentinel.successor
-        cost = float("inf")
+        self.cost = float("inf")
         size = 0
 
         while current is not None:
             size += 1
-            cost = min(cost, current.item.cost)
+            self.cost = min(self.cost, current.item.cost)
             current = current.successor = self.elements.left_sentinel.successor
             processed_elements = 0
             superelements_in_current_sublist = 0
@@ -429,8 +429,8 @@ class Element(Generic[T]):
         if self.is_singleton():  # this element is a left-over
             if not self.superelement:
                 first_structure = self.containing_list
-                second_structure = SplitFindminStructureGabow(first_structure.ackermann_table,
-                                                              first_structure.list_index)
+                second_structure = SplitFindminStructureGabow(ackermann_table=first_structure.ackermann_table,
+                                                              list_index=first_structure.list_index)
                 second_structure.singleton_elements = first_structure.singleton_elements\
                     .cut(self.containing_container_singleton_elements)
 

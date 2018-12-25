@@ -22,7 +22,7 @@ class ThorupModel(object):
         super().__init__()
         self.source_vertex: int = None
         self.source_graph: Graph = source_graph
-        self.visited_vertices: List[bool] = [None] * source_graph.numVertices
+        self.visited_vertices: List[bool] = [False] * source_graph.numVertices
         self.msb_minimum_spanning_tree: Graph = None
         self.component_tree: ComponentTree = None
         self.unvisited_data_structure: UnvisitedDataStructure = None
@@ -44,12 +44,12 @@ class ThorupModel(object):
         uf_nodes = [UnionFindNode(i) for i in range(self.source_graph.numVertices)]
         eis = KruskalMstAlgorithm.sorts_edges_by_weights(self.msb_minimum_spanning_tree)
 
-        c = [None for _ in range(self.source_graph.numVertices)]
-        s = [None for _ in range(self.source_graph.numVertices)]
+        c = [0 for _ in range(self.source_graph.numVertices)]
+        s = [0 for _ in range(self.source_graph.numVertices)]
         component_tree = ComponentTree(self.source_graph.numVertices)
 
-        new_c = [None for _ in range(self.source_graph.numVertices)]
-        represents_internal_node = [None for _ in range(self.source_graph.numVertices)]
+        new_c = [0 for _ in range(self.source_graph.numVertices)]
+        represents_internal_node = [False for _ in range(self.source_graph.numVertices)]
 
         # G.1.
         for v in range(self.source_graph.numVertices):
@@ -93,7 +93,7 @@ class ThorupModel(object):
                     new_c[v] = comp
 
                 # G.3.6.3.
-                for v in new_x:
+                for v in x:
                     if not represents_internal_node[v]:
                         component_tree.set_parent_of_leaf(c[v], new_c[uf.find(uf_nodes[v]).item])
                     else:
@@ -136,7 +136,7 @@ class ThorupModel(object):
                 new_c[v] = comp
 
             # G.3.6.3.
-            for v in new_x:
+            for v in x:
                 if not represents_internal_node[v]:
                     component_tree.set_parent_of_leaf(c[v], new_c[uf.find(uf_nodes[v]).item])
                 else:
@@ -171,7 +171,7 @@ class ThorupModel(object):
         self.visit_node(self.component_tree.root)
 
         # B.4.
-        d = []
+        d = [0] * self.source_graph.numVertices
 
         for i in range(self.source_graph.numVertices):
             d[i] = self.unvisited_data_structure.get_super_distance(i)
@@ -182,7 +182,7 @@ class ThorupModel(object):
         return d
 
     def expand(self, node: ComponentTreeNode) -> None:
-        node.lowest_bucket_index = self.unvisited_data_structure.get_min_dvi_minus(node) >> (node.index -1)
+        node.lowest_bucket_index = self.unvisited_data_structure.get_min_dvi_minus(node) >> (node.component_hierarchy_level -1)
         node.highest_bucket_index = node.lowest_bucket_index + node.delta
 
         node.initialize_buckets()
@@ -193,7 +193,7 @@ class ThorupModel(object):
 
             if minimum != -1:
                 if wh.children or not wh.index == self.source_vertex:
-                    node.inserts_tree_node_to_bucket_by_index(wh, minimum >> (node.index - 1))
+                    node.inserts_tree_node_to_bucket_by_index(wh, minimum >> (node.component_hierarchy_level - 1))
                 else:
                     current = node
 
@@ -209,12 +209,12 @@ class ThorupModel(object):
             for vrtx, weight in self.source_graph.getVertex(vertex).connectedTo.items():
                 new_d_value = self.unvisited_data_structure.get_super_distance(vertex) + weight
 
-                if new_d_value > 0 and new_d_value < self.unvisited_data_structure.get_super_distance(vrtx):
-                    wh = self.unvisited_data_structure.get_unvisited_root(self.component_tree, vrtx)
+                if new_d_value > 0 and new_d_value < self.unvisited_data_structure.get_super_distance(vrtx.getId()):
+                    wh = self.unvisited_data_structure.get_unvisited_root(self.component_tree, vrtx.getId())
                     wi = wh.parent
 
                     old_value = self.unvisited_data_structure.get_min_dvi_minus(wh) >> (wi.index - 1)
-                    self.unvisited_data_structure.decreases_super_distance(vrtx, new_d_value)
+                    self.unvisited_data_structure.decreases_super_distance(vrtx.getId(), new_d_value)
                     new_value = self.unvisited_data_structure.get_min_dvi_minus(wh) >> (wi.index - 1)
 
                     if old_value == -1 or new_value < old_value:
@@ -227,10 +227,10 @@ class ThorupModel(object):
         if vj is None:
             j = get_most_significant_bit(sys.maxsize)
         else:
-            j = vj.index
+            j = vj.component_hierarchy_level
 
         # F.1.
-        if vi.index == 0:
+        if vi.component_hierarchy_level == 0:
             # F.1.1.
             self.visit(vi.index)
 
@@ -252,9 +252,9 @@ class ThorupModel(object):
             vi.next_bucket_index = vi.lowest_bucket_index
 
         # F.3
-        old_shifted_index = vi.next_bucket_index >> (j - vi.index)
+        old_shifted_index = vi.next_bucket_index >> (j - vi.component_hierarchy_level)
 
-        while vi.unvisited_vertices_number > 0 and (vi.next_bucket_index >> (j - vi.index)) == old_shifted_index:
+        while vi.unvisited_vertices_number > 0 and (vi.next_bucket_index >> (j - vi.component_hierarchy_level)) == old_shifted_index:
             # F.3.1.
             while vi.get_bucket(vi.next_bucket_index):
                 # F.3.1.1.
@@ -268,7 +268,7 @@ class ThorupModel(object):
 
         # F.4.
         if vi.unvisited_vertices_number > 0:
-            vi.move_to_bucket(vj, vj.next_bucket_index >> (j - vi.index))
+            vi.move_to_bucket(vj, vj.next_bucket_index >> (j - vi.component_hierarchy_level))
         else:
             #F.5.
             if vi.parent is not None:

@@ -1,3 +1,4 @@
+import sys
 from typing import List
 
 from thorup.ds.componenttree import ComponentTree, ComponentTreeNode
@@ -12,7 +13,7 @@ class UnvisitedDataStructure:
 
     def __init__(self, vertices_number: int, component_tree: ComponentTree) -> None:
         super().__init__()
-        self.vertex_index: List[int] = [None for _ in range(vertices_number)]
+        self.vertex_index: List[int] = [0 for _ in range(vertices_number)]
         self.containers: List[Element[int]] = [None for _ in range(vertices_number)]
 
         self.initialize_mapping(component_tree.root, 0)
@@ -31,7 +32,8 @@ class UnvisitedDataStructure:
         self.containers[self.vertex_index[vertex_index]].decrease_cost(new_lower_super_distance)
 
     def get_super_distance(self, vertex_index: int) -> int:
-        return int(self.containers[self.vertex_index[vertex_index]].cost)
+        cost = self.containers[self.vertex_index[vertex_index]].cost
+        return sys.maxsize if cost == float("inf") else int(cost)
 
     def get_unvisited_root(self, component_tree: ComponentTree, leaf_index: int) -> ComponentTreeNode:
         current = component_tree.leafs[leaf_index]

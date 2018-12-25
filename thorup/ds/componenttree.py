@@ -45,20 +45,20 @@ class ComponentTreeNode:
     def __init__(self, index: int) -> None:
         super().__init__()
         self.index: int = index
-        self.delta: int = None
-        self.lowest_bucket_index: int = None
-        self.component_hierarchy_level: int = None
-        self.visited: bool = None
-        self.bucket_index_offset: int = None
-        self.highest_bucket_index: int = None
-        self.next_bucket_index: int = None
-        self.maximum_unvisited_vertex_index: int = None
+        self.delta: int = 0
+        self.lowest_bucket_index: int = 0
+        self.component_hierarchy_level: int = 0
+        self.visited: bool = False
+        self.bucket_index_offset: int = 0
+        self.highest_bucket_index: int = 0
+        self.next_bucket_index: int = 0
+        self.maximum_unvisited_vertex_index: int = 0
         self.unvisited_vertices_number: int = 0
         self.unvisited_vertices_initial_number: int = 0
         self.parent: ComponentTreeNode = None
 
         self.children: List['ComponentTreeNode'] = []
-        self.buckets: List[List['ComponentTreeNode']] = []
+        self.buckets: List[List['ComponentTreeNode']] = None
         self.containing_bucket: List['ComponentTreeNode'] = None
 
     def remove_from_parent_bucket(self) -> None:
@@ -73,7 +73,7 @@ class ComponentTreeNode:
     def inserts_tree_node_to_bucket_by_index(self, tree: 'ComponentTreeNode', index: int) -> None:
         if index - self.bucket_index_offset < len(self.buckets):
             self.buckets[index - self.bucket_index_offset].append(tree)
-            tree.containingBucket = self.buckets[index - self.bucket_index_offset]
+            tree.containing_bucket = self.buckets[index - self.bucket_index_offset]
 
     def get_bucket(self, index: int) -> List['ComponentTreeNode']:
         return self.buckets[index - self.bucket_index_offset]
@@ -84,7 +84,5 @@ class ComponentTreeNode:
 
     def initialize_buckets(self) -> None:
         self.bucket_index_offset = self.lowest_bucket_index
-        bucket_size = self.maximum_unvisited_vertex_index - self.lowest_bucket_index + 1
-        buckets = []
-        for i in range(bucket_size):
-            buckets[i] = []
+        bucket_size = self.highest_bucket_index - self.lowest_bucket_index + 1
+        self.buckets = [[] for _ in range(bucket_size)]
