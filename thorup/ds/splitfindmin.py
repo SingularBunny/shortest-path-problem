@@ -9,6 +9,7 @@ T = TypeVar('T')
 class SplitFindminStructureGabow(Generic[T]):
     """
     Implementation of Harold N. Gabow's split-findmin structure, using superelements and sublists.
+    TODO remove code duplication
     """
 
     def __init__(self,

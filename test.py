@@ -26,7 +26,7 @@ class TestFindPass(unittest.TestCase):
         thorup.construct_minimum_spanning_tree(KruskalMstAlgorithm)
         thorup.construct_other_data_structures()
         result = thorup.find_shortest_paths(0)
-        pass
+        self.assertEquals([0,1,2], result)
 
 if __name__ == '__main__':
     unittest.main()
